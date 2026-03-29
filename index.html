@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💕 A Little Surprise For You</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Quicksand:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            overflow: hidden;
+            margin: 0;
+        }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #1a0a14;
+            z-index: 100;
+            transition: opacity 0.5s ease, visibility 0.5s;
+        }
+        .loader-heart {
+            font-size: 50px;
+            animation: pulse 1s ease-in-out infinite;
+            color: #ec4899;
+        }
+
+        .script-font { font-family: 'Dancing Script', cursive; }
+
+        .heart-bg {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        }
+        .floating-heart {
+            position: absolute;
+            bottom: -60px;
+            animation: floatUp linear infinite;
+            opacity: 0.15;
+            color: #f472b6;
+            font-size: 24px;
+        }
+
+        @keyframes floatUp {
+            0%   { transform: translateY(0) rotate(0deg) scale(1); opacity: 0; }
+            10%  { opacity: 0.15; }
+            90%  { opacity: 0.15; }
+            100% { transform: translateY(-110vh) rotate(360deg) scale(0.5); opacity: 0; }
+        }
+
+        .card {
+            animation: cardIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes cardIn {
+            0%   { opacity: 0; transform: scale(0.7) translateY(40px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        .pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-12deg); }
+            75% { transform: rotate(12deg); }
+        }
+
+        @keyframes sparkle {
+            0%   { opacity: 1; transform: scale(0) rotate(0deg); }
+            50%  { opacity: 1; transform: scale(1.2) rotate(180deg); }
+            100% { opacity: 0; transform: scale(0) rotate(360deg); }
+        }
+
+        @keyframes confettiFall {
+            0%   { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(236,72,153,0.3), 0 0 60px rgba(236,72,153,0.1); }
+            50%      { box-shadow: 0 0 40px rgba(236,72,153,0.5), 0 0 80px rgba(236,72,153,0.2); }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #ec4899, #f43f5e, #e879f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass {
+            backdrop-filter: blur(20px);
+            background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 25px rgba(236,72,153,0.5);
+        }
+
+        .letter-scroll::-webkit-scrollbar { width: 4px; }
+        .letter-scroll::-webkit-scrollbar-thumb { background: #f9a8d4; border-radius: 4px; }
+        
+        .gif-container img {
+            width: 150px;
+            margin: 0 auto 20px;
+        }
+
+        /* Typing Cursor Effect */
+        .typing::after {
+            content: '|';
+            animation: blink 0.7s infinite;
+            margin-left: 2px;
+            color: #ec4899;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1a0a14] via-[#2b111b] to-[#1a0a20] relative">
+
+    <div id="loader">
+        <div class="loader-heart">❤️</div>
+        <div class="loader-text script-font text-2xl" id="loaderText">Loading love...</div>
+    </div>
+
+    <div class="heart-bg" id="heartBg"></div>
+
+    <div id="mainCard" class="card glass rounded-3xl p-8 md:p-10 shadow-2xl text-center max-w-md w-[90vw] relative z-10" style="animation: glowPulse 3s ease-in-out infinite, cardIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;">
+        </div>
+
+    <div id="effects" class="fixed inset-0 pointer-events-none z-50"></div>
+
+    <script>
+        // Typing Utility Function
+        function typeWriter(elementId, text, speed = 50, callback = null) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            element.innerHTML = "";
+            element.classList.add('typing');
+            let i = 0;
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    element.classList.remove('typing');
+                    if (callback) callback();
+                }
+            }
+            type();
+        }
+
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.visibility = 'hidden';
+                    goToStep(1); // Start the first step
+                }, 500);
+            }, 1500);
+        });
+
+        function createHearts() {
+            const container = document.getElementById('heartBg');
+            const hearts = ['💕', '❤️', '💗', '💖', '💘', '✨', '🌸', '💝'];
+            for (let i = 0; i < 25; i++) {
+                const span = document.createElement('span');
+                span.className = 'floating-heart';
+                span.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                span.style.left = Math.random() * 100 + '%';
+                span.style.animationDuration = (8 + Math.random() * 12) + 's';
+                span.style.animationDelay = (Math.random() * 15) + 's';
+                span.style.fontSize = (16 + Math.random() * 20) + 'px';
+                container.appendChild(span);
+            }
+        }
+        createHearts();
+
+        let noCount = 0;
+        const noMessages = ["Are you sure? 🥺", "Really?? 😢", "Think again! 💔", "Please?? 🥹", "Pretty please? 🙏"];
+
+        function handleNo(btn) {
+            noCount++;
+            if (noCount >= 3) {
+                showDareScreen();
+                return;
+            }
+            const card = document.getElementById('mainCard');
+            const rect = card.getBoundingClientRect();
+            const btnRect = btn.getBoundingClientRect();
+            const maxX = rect.width - btnRect.width - 40;
+            const maxY = rect.height - btnRect.height - 40;
+            const newX = Math.random() * maxX - maxX/2;
+            const newY = Math.random() * maxY - maxY/2;
+            btn.style.transform = `translate(${newX}px, ${newY}px)`;
+            btn.style.transition = 'transform 0.3s ease';
+            btn.textContent = noMessages[Math.min(noCount - 1, noMessages.length - 1)];
+            btn.style.animation = 'wiggle 0.4s ease';
+            setTimeout(() => btn.style.animation = '', 400);
+        }
+
+        function showDareScreen() {
+            const card = document.getElementById('mainCard');
+            card.innerHTML = `
+                <div class="gif-container"><img src="images/angry.gif" alt="Angry"></div>
+                <h1 id="dareTitle" class="text-3xl font-bold text-red-600 script-font mb-3"></h1>
+                <p id="dareText" class="text-gray-500 font-medium mb-6"></p>
+                <button onclick="resetPage()" class="btn-glow bg-gradient-to-r from-red-400 to-pink-500 text-white font-bold py-3 px-10 rounded-full shadow-lg cursor-pointer">Go Back & Say YES! 💖</button>
+            `;
+            typeWriter("dareTitle", "How Dare You!", 60, () => {
+                typeWriter("dareText", "There is no 'No' in our story! Now go back! 😠💕", 40);
+            });
+        }
+
+        function resetPage() { location.reload(); }
+
+        function launchConfetti() {
+            const container = document.getElementById('effects');
+            const colors = ['#ec4899', '#f472b6', '#fbbf24', '#a78bfa', '#34d399', '#f43f5e'];
+            for (let i = 0; i < 80; i++) {
+                const piece = document.createElement('div');
+                piece.style.cssText = `
+                    position: fixed; left: ${Math.random() * 100}%; top: -20px;
+                    width: ${6 + Math.random() * 8}px; height: ${10 + Math.random() * 10}px;
+                    background: ${colors[Math.floor(Math.random() * colors.length)]};
+                    animation: confettiFall ${2 + Math.random() * 3}s linear forwards;
+                `;
+                container.appendChild(piece);
+                setTimeout(() => piece.remove(), 5000);
+            }
+        }
+
+        function goToStep(step) {
+            const card = document.getElementById('mainCard');
+            card.style.animation = 'none';
+            void card.offsetWidth; // Trigger reflow
+            card.style.animation = 'cardIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+
+            if (step === 1) {
+                card.innerHTML = `
+                    <div class="gif-container"><img src="images/bubu.gif" alt="bubu GIF"></div>
+                    <h1 id="step1Title" class="text-3xl font-bold gradient-text script-font mb-2"></h1>
+                    <p id="step1Text" class="text-gray-500 font-medium mb-8 text-lg"></p>
+                    <div id="step1Btns" class="flex justify-center gap-5 opacity-0 transition-opacity duration-500">
+                        <button onclick="goToStep(2)" class="btn-glow bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold py-3 px-10 rounded-full shadow-lg cursor-pointer">YES 💖</button>
+                        <button onmouseover="handleNo(this)" onclick="handleNo(this)" class="bg-gray-200 text-gray-600 font-bold py-3 px-10 rounded-full shadow cursor-pointer">NO</button>
+                    </div>
+                `;
+                typeWriter("step1Title", "Hey You! 💕", 70, () => {
+                    typeWriter("step1Text", "I want to ask you something... Can I?", 50, () => {
+                        document.getElementById('step1Btns').style.opacity = '1';
+                    });
+                });
+            }
+
+            if (step === 2) {
+                card.innerHTML = `
+                    <div class="gif-container"><img src="images/good.gif" alt="Happy Bears"></div>
+                    <h1 id="step2Title" class="text-3xl font-bold gradient-text script-font mb-3"></h1>
+                    <p id="step2Text" class="text-gray-500 font-medium mb-6 text-lg"></p>
+                    <button id="step2Btn" onclick="goToStep(3)" class="opacity-0 btn-glow bg-gradient-to-r from-pink-400 to-rose-400 text-white font-bold py-3 px-10 rounded-full shadow-lg cursor-pointer pulse transition-opacity duration-500">I'm Ready! ❤️</button>
+                `;
+                typeWriter("step2Title", "Good, My Cutie Pie! 😍", 60, () => {
+                    typeWriter("step2Text", "I knew you'd say yes! Now... are you ready? 💍", 50, () => {
+                        document.getElementById('step2Btn').style.opacity = '1';
+                    });
+                });
+            }
+
+            if (step === 3) {
+                card.innerHTML = `
+                    <div class="gif-container"><img src="images/cry.gif" alt="Valentine Panda"></div>
+                    <h1 id="step3Title" class="text-4xl font-bold gradient-text script-font mb-6"></h1>
+                    <div id="step3Btns" class="grid grid-cols-2 gap-3 mb-4 opacity-0 transition-opacity duration-700">
+                        <button onclick="goToStep(4)" class="btn-glow bg-gradient-to-r from-pink-300 to-pink-400 text-white font-bold py-3 px-6 rounded-2xl shadow-md cursor-pointer">A. Yes 💕</button>
+                        <button onclick="goToStep(4)" class="btn-glow bg-gradient-to-r from-rose-300 to-rose-400 text-white font-bold py-3 px-6 rounded-2xl shadow-md cursor-pointer">B. Of Course! 💖</button>
+                        <button onclick="goToStep(4)" class="btn-glow bg-gradient-to-r from-fuchsia-300 to-fuchsia-400 text-white font-bold py-3 px-6 rounded-2xl shadow-md cursor-pointer">C. Absolutely! 💗</button>
+                        <button onclick="goToStep(4)" class="btn-glow bg-gradient-to-r from-purple-300 to-purple-400 text-white font-bold py-3 px-6 rounded-2xl shadow-md cursor-pointer">D. Always! 💝</button>
+                    </div>
+                `;
+                typeWriter("step3Title", "Will You Be My Valentine?", 70, () => {
+                    document.getElementById('step3Btns').style.opacity = '1';
+                });
+            }
+
+            if (step === 4) {
+                launchConfetti();
+                card.innerHTML = `
+                    <div class="gif-container"><img src="images/kiss.gif" alt="Kiss" style="width: 100px;"></div>
+                    <h1 id="finalTitle" class="text-3xl font-bold gradient-text script-font mb-4"></h1>
+                    
+                    <div id="langBox" class="opacity-0 transition-opacity duration-500 bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-4 mb-4 text-left border border-pink-100">
+                        <p class="text-sm mb-1"><span class="font-bold text-pink-500">English:</span> I Love You ❤️</p>
+                        <p class="text-sm mb-1"><span class="font-bold text-pink-500">Hindi:</span> मैं तुमसे प्यार करता हूँ 💕</p>
+                    </div>
+
+                    <div id="letterBox" class="opacity-0 transition-opacity duration-1000 border-2 border-pink-200 rounded-2xl p-5 bg-white shadow-inner letter-scroll max-h-52 overflow-y-auto text-left">
+                        <h3 class="script-font text-2xl text-center gradient-text mb-3">My Dearest Valentine</h3>
+                        <p id="letterText" class="text-gray-600 text-sm leading-relaxed mb-2"></p>
+                        <p class="text-center font-bold gradient-text text-lg script-font">Forever & Always Yours ❤️</p>
+                    </div>
+                    <button onclick="resetPage()" class="mt-5 bg-gray-100 text-gray-400 py-2 px-8 rounded-full text-xs">Start Over 🔄</button>
+                `;
+                
+                typeWriter("finalTitle", "This Is For You 🥳", 60, () => {
+                    document.getElementById('langBox').style.opacity = '1';
+                    document.getElementById('letterBox').style.opacity = '1';
+                    typeWriter("letterText", "From the moment you walked into my life, everything became more beautiful. You are my favorite person, my greatest adventure, and my home. Thank you for being you...", 35);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
